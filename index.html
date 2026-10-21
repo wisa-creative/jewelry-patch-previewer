@@ -1028,11 +1028,18 @@
     document.getElementById("selClose").onclick = function () { sel = null; renderLayer(); };
 
     // 패치·선택 레이어·선택 바 밖을 누르면 선택을 푼다
+    // 팔레트에서 선택을 유지하는 곳: 패치 칩·검색창·스크롤바(바꿀 패치를 찾는 중이라서).
+    // 모바일은 팔레트 자체가 고르는 시트라 안쪽 어디를 눌러도 유지한다.
+    function keepsSelection(e) {
+      var t = e.target, g = document.getElementById("grid");
+      if (t.closest(".chip, .search")) return true;
+      if (t === g && e.offsetX > g.clientWidth) return true;
+      return mq.matches && !!t.closest("#palette");
+    }
     addEventListener("pointerdown", function (e) {
-      var t = e.target;
-      if (sel && !t.closest(".patch, .selbox, .sel, #palette, .toast")) { sel = null; renderLayer(); }
-      // 팔레트(패치 고르기)·다른 점은 각자 처리한다. 그 밖을 누르면 포인트 선택도 푼다.
-      if (sheetFor && !t.closest(".dot, #palette, .sel, .toast, .backdrop")) closeSheet();
+      var t = e.target, keep = keepsSelection(e);
+      if (sel && !keep && !t.closest(".patch, .selbox, .sel, .toast")) { sel = null; renderLayer(); }
+      if (sheetFor && !keep && !t.closest(".dot, .sel, .toast, .backdrop")) closeSheet();
     }, true);
 
     /* ── 드래그(포인터 이벤트: 마우스/터치 공용) ── */
