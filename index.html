@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>이혈 패치 프리뷰</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    /* m.wblbeauty.com 에서 실측한 값 */
+    :root {
+      --bg: #faf9f6;          /* 페이지 바탕(크림) */
+      --soft: #f4f2ec;        /* 섹션 바탕 */
+      --ink: #2a2725;
+      --mute: #8a847c;
+      --line: #ece8e0;
+      --brand: #46603a;       /* 브랜드 그린: 주얼패치 컬렉션·쿠폰가 */
+      --sage: #9ead90;        /* NEW 탭 */
+      --gold: #8e712c;        /* 골드 러시 위크 */
+      --pill: #292a2d;        /* 앱설치 버튼 */
+      --pt: var(--brand);
+      --pt-user: var(--gold);
+      --accent: var(--brand);
+      --sh-1: 0 1px 2px rgba(69, 67, 66, .07), 0 4px 12px rgba(69, 67, 66, .09);   /* WBL 칩 그림자 */
+      --sh-2: 0 2px 6px rgba(69, 67, 66, .1), 0 8px 24px rgba(69, 67, 66, .14);
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      letter-spacing: -0.02em;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px 16px 60px
+    }
+
+    /* ── 카테고리 탭 ── */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin-bottom: 14px
+    }
+
+    .tab {
+      position: relative;
+      padding: 12px 6px;
+      border: 0;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: var(--sh-1);
+      cursor: pointer
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--pill);
+      color: #fff;
+      font-weight: 700
+    }
+
+    .tab .best {
+      position: absolute;
+      top: -9px;
+      right: 14px;
+      background: var(--gold);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      padding: 2px 7px;
+      border-radius: 999px
+    }
+
+    @media(max-width:560px) {
+      .tabs {
+        grid-template-columns: repeat(4, 1fr)
+      }
+    }
+
+    /* ── 본문 레이아웃 ── */
+    .main {
+      display: flex;
+      gap: 22px;
+      align-items: flex-start
+    }
+
+    .left {
+      flex: 0 0 360px;
+      width: 360px;
+      max-width: 100%
+    }
+
+    @media(max-width:760px) {
+      .main {
+        flex-direction: column
+      }
+
+      .left {
+        width: 100%;
+        flex: none
+      }
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;     /* WBL 상품 카드와 같은 라운드 */
+      overflow: hidden;
+      box-shadow: var(--sh-1);
+      touch-action: none
+    }
+
+    .stage img.ear {
+      display: block;
+      width: 100%;
+      pointer-events: none
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0
+    }
+
+    .dot {
+      position: absolute;
+      width: 5%;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 2px dashed var(--pt);
+      background: rgba(70, 96, 58, .14);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, .65);
+      padding: 0;
+      cursor: pointer;
+      transition: transform .12s, background .12s
+    }
+
+    /* 점은 사진 폭의 5%라 모바일에서 17px밖에 안 된다. 보이는 크기는 두고 누를 곳만 44px로 */
+    .dot::before {
+      content: "";
+      position: absolute;
+      inset: -14px;
+      border-radius: 50%
+    }
+
+    .dot.user {
+      border-style: solid;
+      border-color: var(--pt-user);
+      background: rgba(142, 113, 44, .18);
+      cursor: grab
+    }
+
+    .dot.near {
+      transform: translate(-50%, -50%) scale(1.25);
+      background: rgba(70, 96, 58, .34)
+    }
+
+    /* 지금 패치를 고르고 있는 포인트 */
+    .dot.on,
+    .dot.user.on {
+      border: 2px solid var(--brand);
+      background: rgba(70, 96, 58, .55);
+      box-shadow: 0 0 0 3px rgba(70, 96, 58, .22), 0 0 0 4px rgba(255, 255, 255, .7)
+    }
+
+    .dot.user.near {
+      background: rgba(142, 113, 44, .38)
+    }
+
+    /* 패치가 붙으면 포인트는 숨는다. 레이아웃은 남겨야 자석 계산이 계속 동작한다 */
+    .dot.has {
+      opacity: 0;
+      pointer-events: none
+    }
+
+    .dot .x {
+      position: absolute;
+      left: 100%;
+      bottom: 100%;
+      margin: 0 0 2px 2px;   /* 점 가장자리에서 약 7px */
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--pill);
+      color: #fff;
+      font-size: 12px;
+      line-height: 17px;
+      text-align: center;
+      box-shadow: 0 0 0 1.5px #fff
+    }
+
+    /* 보이는 크기는 그대로 두고 누를 수 있는 영역만 44px로 넓힌다 */
+    .rot-h::after {
+      content: "";
+      position: absolute;
+      inset: -12px;
+      border-radius: 50%
+    }
+
+    /* 포인트 숨김: 레이아웃은 남겨야 자석 계산이 계속 동작한다 */
+    .layer.hidepts .dot {
+      opacity: 0;
+      pointer-events: none
+    }
+
+    .patch {
+      position: absolute;
+      width: 7%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      touch-action: none
+    }
+
+    .selbox {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border: 1.5px solid var(--brand);
+      border-radius: 12px;
+      box-shadow: 0 0 0 3px rgba(70, 96, 58, .14);
+      pointer-events: none
+      /* 등장 애니메이션 없음: 박스는 다시 그릴 때마다 새로 만들어져서
+         페이드를 넣으면 조작할 때마다 깜빡인다. */
+    }
+
+    /* 레이어 '바깥' 우측 상단. 패치 크기가 제각각이라 안쪽에 두면 그림을 가린다 */
+    .rot-h {
+      position: absolute;
+      left: 100%;
+      bottom: 100%;
+      margin: 0 0 -5px -5px;   /* 레이어 모서리가 둥글어 비는 자리로 당긴다. 패치에서 약 11px */
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--accent);
+      box-shadow: var(--sh-2);
+      cursor: grab;
+      pointer-events: auto;
+      touch-action: none;
+      transition: transform .16s cubic-bezier(.2, .8, .2, 1)
+    }
+
+    .rot-h:active {
+      transform: scale(.92);
+      cursor: grabbing
+    }
+
+    /* 오른쪽 끝에 붙은 패치는 핸들을 왼쪽 바깥으로 넘긴다 */
+    .selbox.flip .rot-h {
+      left: auto;
+      right: 100%;
+      margin: 0 -5px -5px 0
+    }
+
+    /* × 의 누름 영역은 점 쪽으로 넓히지 않는다. 넓히면 점을 누르려다 지워진다 */
+    .dot .x::after {
+      content: "";
+      position: absolute;
+      inset: -10px -10px -2px -2px;
+      border-radius: 50%
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .rot-h,
+      .dot {
+        animation: none;
+        transition: none
+      }
+    }
+
+    .ghost {
+      position: fixed;
+      width: 50px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 99;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .25))
+    }
+
+    /* ── 스테이지 아래 조작부 ── */
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--mute)
+    }
+
+    .bar button {
+      border: 0;
+      background: #fff;
+      border-radius: 999px;
+      padding: 9px 15px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: var(--sh-1);
+      cursor: pointer;
+      transition: transform .14s cubic-bezier(.2, .8, .2, 1), background .14s
+    }
+
+    .bar button:active {
+      transform: scale(.96);
+      background: var(--soft)
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    .bar button[aria-pressed="true"] {
+      background: var(--pill);
+      color: #fff
+    }
+
+    .sel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--soft);
+      font-size: 13px
+    }
+
+    .sel[hidden] {
+      display: none
+    }
+
+    .sel input[type=range] {
+      flex: 1;
+      min-width: 100px
+    }
+
+    .sel button {
+      border: 0;
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 13px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: var(--sh-1);
+      cursor: pointer
+    }
+
+    /* ── 팔레트 ── */
+    .palette {
+      flex: 1;
+      min-width: 0
+    }
+
+    .palette h3:empty {
+      display: none
+    }
+
+    .palette h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--mute);
+      font-weight: 600
+    }
+
+    .search {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px
+    }
+
+    .search input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: #fff;
+      box-shadow: var(--sh-1);
+      font: inherit;
+      font-size: 13px;
+      -webkit-user-select: text;
+      user-select: text
+    }
+
+    .search input:focus {
+      outline: none;
+      box-shadow: var(--sh-1), 0 0 0 2px var(--brand)
+    }
+
+    .search .count {
+      font-size: 12px;
+      color: var(--mute);
+      white-space: nowrap
+    }
+
+    .ghead {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin: 8px 2px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink)
+    }
+
+    .ghead:first-child {
+      margin-top: 0
+    }
+
+    .ghead b {
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--mute)
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 24px 4px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--mute)
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 8px;
+      align-content: start;
+      max-height: 430px;
+      overflow: auto;
+      padding: 6px 8px 12px
+    }
+
+    .chip {
+      border: 0;
+      border-radius: 12px;
+      padding: 6px;
+      background: #fff;
+      box-shadow: var(--sh-1);
+      cursor: pointer;
+      transition: transform .14s, box-shadow .14s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;
+      touch-action: none
+    }
+
+    @media (hover: hover) {
+      .chip:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--sh-2)
+      }
+    }
+
+    .chip img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 60;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px 12px 18px;
+      border-radius: 14px;
+      background: var(--pill);
+      color: #fff;
+      font-size: 13px;
+      box-shadow: var(--sh-2);
+      animation: rise .18s ease-out
+    }
+
+    .toast[hidden] {
+      display: none
+    }
+
+    .toast button {
+      border: 0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, .16);
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 8px)
+      }
+    }
+
+    .sheet-close {
+      display: none
+    }
+
+    .backdrop {
+      display: none
+    }
+
+    /* ── 모바일: 팔레트를 그대로 바텀시트로 쓴다(그리드를 복제하지 않는다) ── */
+    @media(max-width:760px) {
+      .palette {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        background: #fff;
+        border-radius: 18px 18px 0 0;
+        box-shadow: 0 -6px 28px rgba(0, 0, 0, .18);
+        padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+        max-height: 78vh;
+        overflow: auto;
+        transform: translateY(100%);
+        transition: transform .22s ease
+      }
+
+      .palette:not(.open) {
+        box-shadow: none;
+        visibility: hidden
+      }
+
+      .palette.open {
+        transform: none
+      }
+
+      .grid {
+        max-height: 54vh
+      }
+
+      /* 시트에서는 끌지 않고 눌러서 고르므로 스크롤을 막지 않는다 */
+      .chip {
+        touch-action: auto
+      }
+
+      .sheet-close {
+        display: block;
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        border: 0;
+        background: none;
+        font-size: 20px;
+        line-height: 1;
+        color: var(--mute);
+        cursor: pointer
+      }
+
+      .backdrop.open {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 49;
+        background: rgba(0, 0, 0, .35)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="main">
+      <div class="left">
+        <div class="stage" id="stage">
+          <img class="ear" src="assests/imagas/ear.png" alt="귀">
+          <div class="layer" id="layer"></div>
+        </div>
+
+        <div class="sel" id="sel" hidden>
+          <span style="flex:1">회전 <b id="rotVal">0°</b></span>
+          <button id="selSwap">다른 패치로</button>
+          <button id="selDel">패치 빼기</button>
+          <button id="selClose">닫기</button>
+        </div>
+
+        <div class="bar">
+          <button id="addPt">포인트 추가</button>
+          <button id="showPt" aria-pressed="true">포인트 표시</button>
+          <button id="reset">전체 지우기</button>
+          <span id="hint"></span>
+        </div>
+      </div>
+
+      <div class="palette" id="palette">
+        <button class="sheet-close" id="sheetClose" aria-label="닫기">×</button>
+        <h3 id="palTitle"></h3>
+        <div class="search">
+          <input id="q" type="search" placeholder="패치 이름 검색 (예: 루미하트, 골드)" autocomplete="off">
+          <span class="count" id="count"></span>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+  <div class="backdrop" id="backdrop"></div>
+  <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
+
+  <script>
+    /* ── 이혈 포인트 묶음 (ear.png 기준 %, [x, y, 밝기]) ──
+       레퍼런스 사진 8장의 스터드를 이 귀 사진으로 옮긴 값.
+       1) 양쪽 귀에서 같은 기준점 4개(헬릭스 꼭대기·외이도 입구·귓불 바닥·헬릭스 뒤끝)를 찍고
+          최소제곱 아핀으로 대략 위치를 잡은 뒤
+       2) 레퍼런스는 옆에서 찍혀 헬릭스 테두리가 두껍게 보이는 등 귀 생김이 달라서,
+          점마다 같은 해부학 부위(이주·헬릭스 안쪽선·대이륜·귓불…)로 보정했다.
+       밝기는 그 자리 사진 톤을 직접 잰 값(패치 음영용).
+       ponytail: 귀 사진을 바꾸면 이 좌표도 다시 잡아야 한다. */
+    var PRESETS = [
+      { key: "1", tab: "얼굴라인", best: true, pts: [[53.5, 35.0, 0.602], [27.0, 57.5, 0.734], [48.5, 36.3, 0.524]] },
+      { key: "2", tab: "다이어트", pts: [[22.5, 50.5, 0.707], [33.5, 67.5, 0.795], [41.5, 66.5, 0.816]] },
+      { key: "3", tab: "스트레스", pts: [[25.5, 49.5, 0.706], [25.0, 54.0, 0.752], [57.0, 45.0, 0.76]] },
+      { key: "4", tab: "불면증", pts: [[67.0, 35.0, 0.756], [53.0, 35.0, 0.601], [58.5, 46.0, 0.758]] },
+      { key: "5", tab: "소화불량", pts: [[54.0, 35.0, 0.603], [25.0, 65.0, 0.723], [42.5, 61.5, 0.794]] },
+      { key: "6", tab: "만성피로", pts: [[53.0, 35.0, 0.601], [47.0, 46.5, 0.566], [52.0, 48.5, 0.535]] },
+      { key: "7", tab: "두통", pts: [[53.5, 35.0, 0.602], [58.5, 46.0, 0.758]] },
+      { key: "8", tab: "생리통", pts: [[66.0, 34.5, 0.76], [58.0, 35.5, 0.596], [36.0, 63.5, 0.761]] }
+    ];
+
+    var PATCH_DIR = "assests/imagas/patch/";
+    var PATCHES = [];   // 폴더에서 자동으로 채운다 (아래 loadPatches)
+
+    // gen-patches.py가 아래 두 줄 사이를 덮어쓴다. 직접 고치지 말 것.
+    /* PATCHES:BEGIN */
+    var PATCHES_INLINE = ["골든하트.png", "글로시뮤즈.png", "글로우 나비.png", "글로우문.png", "글로우문_밀크화이트.png", "글로우문_블루밍블루.png", "글로우문_핑크샤워.png", "글림하트 골드.png", "글림하트 실버.png", "글림하트.png", "노바 스타.png", "누끼_글림 클로버_골드.png", "누끼_글림 클로버_실버.png", "루루플라워_레드스윗.png", "루루플라워_밀키부케.png", "루루플라워_블랙베일.png", "루루플라워_핑크폴리.png", "루미에르_골드.png", "루미에르_실버.png", "루미하트팝.png", "루미하트팝_골든 섀도우.png", "루미하트팝_라벤더.png", "루미하트팝_스칼렛 레드.png", "루미하트팝_엔틱 핑크.png", "루미하트팝_오로라.png", "루미하트팝_제트 블랙.png", "메탈볼_골드.png", "메탈볼_실버.png", "모모하트.png", "버터플라이.png", "베이직_금볼.png", "베이직_은볼.png", "보니에 리본_골드.png", "보니에 리본_블랙.png", "보니에 리본_실버.png", "보니에 리본_오로라.png", "블루밍 나비.png", "블룸_로즈 쉬머_로지_글로우.png", "블룸_로즈_쉬머_오로라_글로우.png", "블룸_블러쉬_로즈_블룸.png", "샤벳 블룸_그린.png", "샤벳 블룸_옐로우.png", "샤벳 블룸_피치.png", "샤벳 블룸_핑크.png", "샤벳 블룸_화이트.png", "솔라 플라워_골드.png", "솔라 플라워_실버.png", "스왈진주_로잘린핑크.png", "스왈진주_문나이트.png", "스왈진주_미드나잇블랙.png", "스왈진주_크림.png", "스왈크리스탈_딥블랙.png", "스왈크리스탈_샴페인_골드.png", "스왈크리스탈_쉬머.png", "스왈크리스탈_스칼렛_레드.png", "스왈크리스탈_퓨어_화이트.png", "스퀘어.png", "스타플랫_골드.png", "스타플랫_실버.png", "스텔라_골드.png", "스텔라_실버.png", "옛지글로우_골드.png", "옛지글로우_실버.png", "초랑_갓.png", "초랑_꽃.png", "초랑_매듭.png", "초랑_호랑이.png", "펄 글림 클로버.png", "펄 블룸.png", "펄 클러스터.png", "펄린 글로우_골드.png", "펄린 글로우_실버.png", "퓨어 글로우_골드.png", "퓨어 글로우_실버.png", "플러터 나비_골드.png", "플러터 나비_실버.png", "플럼 시그니처_로즈핑크.png", "플럼 시그니처_소프트핑크.png", "플럼 시그니처_플럼핑크.png", "플로라 클로버_골드.png", "플로라 클로버_실버.png", "피오니로즈.png"];
+    /* PATCHES:END */
+
+    // 원본 1px이 귀 폭의 몇 %인가. 이 값 하나로 모든 패치 크기가 정해짐(패치별 설정 없음)
+    // ponytail: 원본 px를 실물 크기 대용으로 씀. 촬영 배율이 다른 이미지가 섞이면 깨짐
+    var PX_PCT = 7 / 107;
+
+    var GAIN = 0.8;   // ponytail: 명암 세기. 사진을 바꾸면 여기서 다시 맞출 것
+
+    var stage = document.getElementById("stage"),
+      layer = document.getElementById("layer"),
+      hint = document.getElementById("hint"),
+      palette = document.getElementById("palette"),
+      backdrop = document.getElementById("backdrop"),
+      selBar = document.getElementById("sel"),
+      cur = PRESETS[0],
+      userPts = [],    // [{id,x,y,l}] 사용자가 찍은 포인트. 이동·삭제 가능
+      uid = 0,
+      placed = {},     // {pointId: {file, rot}}
+      sel = null,      // 선택된 포인트 id (회전/빼기 대상)
+      sheetFor = null; // 모바일 시트가 어느 포인트를 위해 열렸는지
+
+    var mq = matchMedia("(max-width:760px)");
+
+    function src(f) { return PATCH_DIR + encodeURIComponent(f); }
+    function isUser(id) { return id.charAt(0) === "u"; }
+    function pointOf(id) {
+      if (isUser(id)) {
+        for (var i = 0; i < userPts.length; i++) if (userPts[i].id === id) return userPts[i];
+        return null;
+      }
+      var at = id.split("#"), ps = PRESETS.filter(function (p) { return p.key === at[0]; })[0];
+      if (!ps) return null;
+      var t = ps.pts[+at[1]];
+      return t && { x: t[0], y: t[1], l: t[2] };
+    }
+    function activeIds() {
+      return cur.pts.map(function (_, i) { return cur.key + "#" + i; })
+        .concat(userPts.map(function (p) { return p.id; }));
+    }
+
+    // 찍은 자리의 사진 밝기를 읽어 패치 음영에 쓴다.
+    // ponytail: file://로 열면 캔버스가 오염돼 읽기가 막히므로 중간값으로 떨어진다(음영 보정 없음).
+    var earCtx = null;
+    function sampleL(xp, yp) {
+      try {
+        var img = document.querySelector("img.ear");
+        if (!img.naturalWidth) return 0.675;
+        if (!earCtx) {
+          var cv = document.createElement("canvas");
+          cv.width = img.naturalWidth;
+          cv.height = img.naturalHeight;
+          earCtx = cv.getContext("2d", { willReadFrequently: true });
+          earCtx.drawImage(img, 0, 0);
+        }
+        var cv2 = earCtx.canvas;
+        var d = earCtx.getImageData(
+          Math.min(cv2.width - 1, Math.round(xp / 100 * cv2.width)),
+          Math.min(cv2.height - 1, Math.round(yp / 100 * cv2.height)), 1, 1).data;
+        return (0.299 * d[0] + 0.587 * d[1] + 0.114 * d[2]) / 255;
+      } catch (e) { return 0.675; }
+    }
+
+    /* ── 탭 ── */
+    function renderTabs() {
+      document.getElementById("tabs").innerHTML = PRESETS.map(function (p) {
+        return '<button class="tab" role="tab" data-key="' + p.key + '" aria-selected="' + (p === cur) + '">'
+          + p.tab + (p.best ? '<span class="best">BEST</span>' : '') + '</button>';
+      }).join("");
+    }
+
+    /* ── 귀 위 원 + 붙은 패치 ── */
+    var NAT = {};   // 파일 -> 원본 px. 캐시해야 다시 그릴 때 크기가 튀지 않는다
+
+    function renderLayer() {
+      var ids = activeIds();
+      var html = ids.map(function (id) {
+        var p = pointOf(id);
+        return '<button class="dot' + (isUser(id) ? ' user' : '') + (placed[id] ? ' has' : '') + (sheetFor === id ? ' on' : '')
+          + '" data-id="' + id + '" style="left:' + p.x + '%;top:' + p.y + '%">'
+          + (isUser(id) ? '<span class="x" title="포인트 삭제">×</span>' : '') + '</button>';
+      }).join("");
+      html += ids.filter(function (id) { return placed[id]; }).map(function (id) {
+        var p = pointOf(id), it = placed[id];
+        // 귀 사진이 어두운 자리면 패치도 어둡게, 밝은 자리면 밝게
+        var k = (1 - (0.675 - p.l) * GAIN).toFixed(3);
+        return '<img class="patch" data-id="' + id + '" src="' + src(it.file) + '" '
+          + 'style="left:' + p.x + '%;top:' + p.y + '%;'
+          + (NAT[it.file] ? 'width:' + (NAT[it.file] * PX_PCT).toFixed(2) + '%;' : '')
+          + 'transform:translate(-50%,-50%) rotate(' + (it.rot || 0) + 'deg);'
+          // drop-shadow는 PNG 알파 모양을 그대로 따라가서 스티커처럼 떠 보임
+          + 'filter:brightness(' + k + ') drop-shadow(1px 1.5px 1.5px rgba(60,35,25,.45))">';
+      }).join("");
+      layer.innerHTML = html;
+      [].forEach.call(layer.querySelectorAll(".patch"), fit);
+      syncSel();
+      renderSelBox();
+      save();
+    }
+
+    // 패치마다 원본 px가 달라서(105~165) 실제 제품 크기 비율대로 그림
+    function fit(img) {
+      var set = function () {
+        NAT[decodeURIComponent(img.src.split("/").pop())] = img.naturalWidth;
+        img.style.width = (img.naturalWidth * PX_PCT).toFixed(2) + "%";
+        renderSelBox();
+      };
+      if (img.naturalWidth) set(); else img.onload = set;
+    }
+
+    /* ── 선택된 패치를 감싸는 박스 + 우측 상단 회전 핸들 ── */
+    function renderSelBox() {
+      var old = layer.querySelector(".selbox");
+      if (old) old.remove();
+      if (!sel || !placed[sel]) return;
+      var img = layer.querySelector('.patch[data-id="' + sel + '"]');
+      if (!img || !img.offsetWidth) return;
+      var PAD = 9;                               // 레이어와 패치 사이 숨 쉴 틈
+      var p = pointOf(sel), box = document.createElement("div");
+      box.className = "selbox";
+      box.style.left = p.x + "%";
+      box.style.top = p.y + "%";
+      box.style.width = (img.offsetWidth + PAD * 2) + "px";
+      box.style.height = (img.offsetHeight + PAD * 2) + "px";
+      box.style.transform = "translate(-50%,-50%) rotate(" + (placed[sel].rot || 0) + "deg)";
+      box.innerHTML = '<button class="rot-h" aria-label="회전" title="잡고 돌리면 회전">'
+        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+        + ' stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        + '<path d="M20 11A8 8 0 1 0 17.7 17.7"/><path d="M20 5v6h-6"/></svg></button>';
+      layer.appendChild(box);
+
+      // 스테이지는 overflow:hidden이라 오른쪽 끝에선 핸들이 잘린다. 그때만 왼쪽 바깥으로.
+      var sr = stage.getBoundingClientRect(), br = box.getBoundingClientRect();
+      if (br.right + 44 > sr.right) box.classList.add("flip");
+    }
+
+    function render() { renderTabs(); renderLayer(); }
+
+    document.getElementById("tabs").addEventListener("click", function (e) {
+      var b = e.target.closest(".tab"); if (!b) return;
+      cur = PRESETS.filter(function (p) { return p.key === b.dataset.key; })[0];
+      sel = null; closeSheet(); render();
+    });
+
+    /* ── 팔레트: 패치 폴더를 그대로 읽어 채운다 ── */
+
+    // 계열 이름: "루미하트팝_오로라" -> 루미하트팝, "글림하트 골드" -> 글림하트.
+    // ponytail: 파일명 규칙이 섞여 있어(밑줄/띄어쓰기/붙여쓰기) 완벽히는 안 묶인다.
+    //   정확히 묶어야 할 때가 오면 파일명 규칙을 먼저 통일할 것.
+    function familyOf(f) {
+      var n = f.replace(/\.[^.]+$/, "").replace(/^누끼_/, "");
+      var i = n.indexOf("_");
+      if (i > 0) return n.slice(0, i);
+      i = n.indexOf(" ");
+      return i > 0 ? n.slice(0, i) : n;
+    }
+
+    var FAMILY = {};          // 파일명 -> 표시할 계열. 검색해도 소속이 흔들리지 않게 미리 굳힌다
+    function buildFamilies() {
+      var size = {};
+      PATCHES.forEach(function (f) { var g = familyOf(f); size[g] = (size[g] || 0) + 1; });
+      PATCHES.forEach(function (f) {
+        var g = familyOf(f);
+        // 식구가 있으면 계열 이름, 혼자면 잘린 앞머리 대신 패치 이름 전체를 쓴다
+        FAMILY[f] = size[g] > 1 ? g
+          : f.replace(/\.[^.]+$/, "").replace(/^누끼_/, "").replace(/_/g, " ");
+      });
+    }
+
+    function chipHtml(f) {
+      var name = f.replace(/\.[^.]+$/, "");
+      return '<div class="chip" data-file="' + f + '" title="' + name + '">'
+        + '<img src="' + src(f) + '" alt="' + name + '" loading="lazy"></div>';
+    }
+
+    function renderGrid() {
+      var q = (document.getElementById("q").value || "").trim().toLowerCase();
+      var hit = q ? PATCHES.filter(function (f) { return f.toLowerCase().indexOf(q) >= 0; })
+        : PATCHES;
+
+      var groups = {};
+      hit.forEach(function (f) { (groups[FAMILY[f]] = groups[FAMILY[f]] || []).push(f); });
+
+      var names = Object.keys(groups).sort(function (a, b) {
+        return a.localeCompare(b, "ko");
+      });
+
+      document.getElementById("grid").innerHTML = hit.length
+        ? names.map(function (g) {
+          return '<div class="ghead">' + g + ' <b>' + groups[g].length + '</b></div>'
+            + groups[g].map(chipHtml).join("");
+        }).join("")
+        : '<div class="empty">‘' + q + '’에 맞는 패치가 없습니다</div>';
+
+      document.getElementById("count").textContent =
+        q ? hit.length + " / " + PATCHES.length : PATCHES.length + "개";
+    }
+
+    document.getElementById("q").addEventListener("input", renderGrid);
+
+    // 1순위: 서버의 디렉터리 목록. 파일만 넣으면 코드도 목록도 건드릴 필요가 없다.
+    // 2순위: patches.json. 목록을 막아둔 정적 호스팅(카페24 등)에서는 이쪽.
+    // 3순위: PATCHES_INLINE. file://로 그냥 열면 fetch가 CORS로 다 막히므로 이게 유일하게 남는다.
+    //   2·3순위는 둘 다 `python gen-patches.py`가 갱신한다.
+    var IMG_RE = /\.(png|jpe?g|webp|gif)$/i;
+    function loadPatches() {
+      return fetch(PATCH_DIR)
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+        .then(function (html) {
+          var names = (html.match(/href="[^"]+"/gi) || [])
+            .map(function (h) { return decodeURIComponent(h.slice(6, -1).split("/").pop()); })
+            .filter(function (n) { return IMG_RE.test(n); });
+          if (!names.length) throw 0;
+          return names;
+        })
+        .catch(function () {
+          return fetch(PATCH_DIR + "patches.json").then(function (r) { return r.json(); });
+        })
+        .catch(function () {
+          if (!PATCHES_INLINE.length) throw "목록 없음 (python gen-patches.py 실행 필요)";
+          return PATCHES_INLINE;
+        })
+        .then(function (names) {
+          PATCHES = names.filter(function (n) { return IMG_RE.test(n); })
+            .sort(function (a, b) { return a.localeCompare(b, "ko"); });
+          buildFamilies();
+          renderGrid();
+          // 저장해 둔 배치 중 폴더에서 사라진 파일은 버린다
+          var gone = Object.keys(placed).filter(function (k) { return PATCHES.indexOf(placed[k].file) < 0; });
+          if (gone.length) { gone.forEach(function (k) { delete placed[k]; }); renderLayer(); }
+        })
+        .catch(function (e) {
+          hint.textContent = "패치 목록을 못 읽었습니다: " + e;
+        });
+    }
+    loadPatches();
+
+    /* ── 모바일 바텀시트: .palette를 그대로 띄운다 ── */
+    function startPick(id) {
+      if (sel !== id) sel = null;
+      sheetFor = id;
+      renderLayer();
+      document.getElementById("palTitle").textContent =
+        placed[id] ? "바꿀 패치를 고르세요" : "붙일 패치를 고르세요";
+      if (mq.matches) {
+        palette.classList.add("open");
+        backdrop.classList.add("open");
+      } else {
+        palette.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+      return true;
+    }
+    function closeSheet() {
+      var was = sheetFor;
+      sheetFor = null;
+      if (was) renderLayer();
+      document.getElementById("palTitle").textContent = "";
+      palette.classList.remove("open");
+      backdrop.classList.remove("open");
+    }
+    document.getElementById("sheetClose").onclick = closeSheet;
+    // 시트를 닫으면 손가락 밑에 있던 다른 버튼(전체 지우기 등)이 뒤따르는 click을 받는다. 한 번 삼킨다.
+    function swallowNextClick() {
+      var eat = function (e) { e.stopPropagation(); e.preventDefault(); };
+      addEventListener("click", eat, true);
+      setTimeout(function () { removeEventListener("click", eat, true); }, 450);
+    }
+    backdrop.onpointerdown = function (e) { e.preventDefault(); swallowNextClick(); closeSheet(); };
+
+    function setPatch(id, file) {
+      placed[id] = { file: file, rot: (placed[id] && placed[id].rot) || 0 };
+      renderLayer();
+    }
+
+    /* ── 지운 건 되돌릴 수 있게. 확인 모달 대신 한 단계 실행취소를 쓴다 ── */
+    var undoSnap = null, toastT = null;
+    var toast = document.getElementById("toast");
+    function snapshot() {
+      return { placed: JSON.parse(JSON.stringify(placed)), userPts: JSON.parse(JSON.stringify(userPts)) };
+    }
+    function showUndo(msg, snap) {
+      undoSnap = snap;
+      document.getElementById("toastMsg").textContent = msg;
+      toast.hidden = false;
+      clearTimeout(toastT);
+      toastT = setTimeout(function () { toast.hidden = true; undoSnap = null; }, 6000);
+    }
+    document.getElementById("toastUndo").onclick = function () {
+      if (!undoSnap) return;
+      placed = undoSnap.placed; userPts = undoSnap.userPts;
+      undoSnap = null; toast.hidden = true; sel = null;
+      renderLayer();
+    };
+    // 모바일에서 붙고 떨어지는 느낌을 짧게. 매 탭마다 울리지는 않는다.
+
+    /* ── 작업한 내용을 남겨둔다. 새로고침해도 배치가 사라지지 않게 ── */
+    var SAVE_KEY = "jewelry-patch-previewer.v1", saveT = null;
+    function save() {
+      clearTimeout(saveT);
+      saveT = setTimeout(function () {
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify({
+            placed: placed, userPts: userPts, uid: uid, tab: cur.key
+          }));
+        } catch (e) { /* 사생활 보호 모드 등에서는 그냥 저장하지 않는다 */ }
+      }, 300);
+    }
+    function restore() {
+      try {
+        var v = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+        if (!v) return;
+        placed = v.placed || {};
+        userPts = v.userPts || [];
+        uid = v.uid || userPts.length;
+        var t = PRESETS.filter(function (p) { return p.key === v.tab; })[0];
+        if (t) cur = t;
+        // 프리셋이 바뀌면 옛 포인트 id로 저장된 배치는 어디에도 못 붙는다. 버린다.
+        Object.keys(placed).forEach(function (k) {
+          if (!isUser(k) && !pointOf(k)) delete placed[k];
+        });
+      } catch (e) { }
+    }
+    restore();
+
+    /* ── 선택된 패치: 회전 / 빼기 ── */
+    function syncSel() {
+      var on = sel && placed[sel];
+      selBar.hidden = !on;
+      if (on) document.getElementById("rotVal").textContent = Math.round(placed[sel].rot || 0) + "°";
+    }
+
+    /* ── 회전: 핸들을 잡고 돌린다 ── */
+    var rotDrag = null;
+    function centerOf(id) {
+      var r = stage.getBoundingClientRect(), p = pointOf(id);
+      return { x: r.left + r.width * p.x / 100, y: r.top + r.height * p.y / 100 };
+    }
+    function angleTo(e, c) {
+      return Math.atan2(e.clientY - c.y, e.clientX - c.x) * 180 / Math.PI;
+    }
+    function applyRot(id, deg) {
+      placed[id].rot = deg;
+      var t = "translate(-50%,-50%) rotate(" + deg + "deg)";
+      var img = layer.querySelector('.patch[data-id="' + id + '"]');
+      var box = layer.querySelector(".selbox");
+      if (img) img.style.transform = t;
+      if (box) box.style.transform = t;
+      document.getElementById("rotVal").textContent = Math.round(deg) + "°";
+    }
+    document.getElementById("selSwap").onclick = function () {
+      if (!sel) return;
+      startPick(sel);
+    };
+    document.getElementById("selDel").onclick = function () {
+      if (!sel) return;
+      var snap = snapshot();
+      delete placed[sel];
+      sel = null; renderLayer();
+      showUndo("패치를 뺐습니다", snap);
+    };
+    document.getElementById("selClose").onclick = function () { sel = null; renderLayer(); };
+
+    // 패치·선택 레이어·선택 바 밖을 누르면 선택을 푼다
+    addEventListener("pointerdown", function (e) {
+      var t = e.target;
+      if (sel && !t.closest(".patch, .selbox, .sel, #palette, .toast")) { sel = null; renderLayer(); }
+      // 팔레트(패치 고르기)·다른 점은 각자 처리한다. 그 밖을 누르면 포인트 선택도 푼다.
+      if (sheetFor && !t.closest(".dot, #palette, .sel, .toast, .backdrop")) closeSheet();
+    }, true);
+
+    /* ── 드래그(포인터 이벤트: 마우스/터치 공용) ── */
+    var drag = null;    // 패치 드래그 {file, ghost, from}
+    var press = null;   // 스테이지 위 누름 {kind:'dot'|'patch', id, x0, y0, moved}
+
+    function dotCenters() {
+      return activeIds().map(function (id) {
+        var el = layer.querySelector('.dot[data-id="' + id + '"]');
+        var r = el.getBoundingClientRect();
+        return { id: id, x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      });
+    }
+    function nearest(x, y) {
+      var snap = stage.getBoundingClientRect().width * 0.10, best = null;  // 자석 반경 = 사진 폭 10%
+      dotCenters().forEach(function (d) {
+        var dist = Math.hypot(d.x - x, d.y - y);
+        if (dist < snap && (!best || dist < best.dist)) best = { id: d.id, dist: dist };
+      });
+      return best;
+    }
+    function highlight(hit) {
+      layer.querySelectorAll(".dot").forEach(function (d) {
+        d.classList.toggle("near", !!hit && d.dataset.id === hit.id);
+      });
+    }
+
+    function start(e, file, from) {
+      drag = { file: file, from: from };
+      drag.ghost = document.createElement("img");
+      drag.ghost.className = "ghost";
+      drag.ghost.src = src(file);
+      var g = drag.ghost, size = function () {
+        g.style.width = stage.getBoundingClientRect().width
+          * g.naturalWidth * PX_PCT / 100 + "px";
+      };
+      if (g.naturalWidth) size(); else g.onload = size;
+      document.body.appendChild(drag.ghost);
+      move(e);
+      e.preventDefault();
+    }
+    function move(e) {
+      if (rotDrag) {
+        var a = angleTo(e, rotDrag.c) + rotDrag.off;
+        applyRot(rotDrag.id, ((a % 360) + 360) % 360);
+        return;
+      }
+      if (drag) {
+        drag.ghost.style.left = e.clientX + "px";
+        drag.ghost.style.top = e.clientY + "px";
+        highlight(nearest(e.clientX, e.clientY));
+        return;
+      }
+      if (!press) return;
+      if (press.fixed) return;                   // 기본 포인트는 못 움직인다 = 항상 탭
+      if (!press.moved && Math.hypot(e.clientX - press.x0, e.clientY - press.y0) < press.slop) return;
+      press.moved = true;
+
+      if (press.kind === "dot") {                 // 사용자 포인트만 여기 들어온다
+        var r = stage.getBoundingClientRect(), p = pointOf(press.id);
+        p.x = +(((e.clientX - r.left) / r.width) * 100).toFixed(1);
+        p.y = +(((e.clientY - r.top) / r.height) * 100).toFixed(1);
+        p.l = sampleL(p.x, p.y);
+        renderLayer();
+      } else {                                     // 패치는 기존처럼 고스트를 끌고 간다
+        var el = layer.querySelector('.patch[data-id="' + press.id + '"]');
+        if (el) el.style.visibility = "hidden";
+        var file = placed[press.id].file, from = press.id;
+        press = null;
+        start(e, file, from);
+      }
+    }
+    function end(e) {
+      if (rotDrag) { rotDrag = null; save(); return; }   // 다시 그리면 레이어가 한 번 깜빡인다
+      if (drag) {
+        var hit = nearest(e.clientX, e.clientY);
+        if (hit) setPatch(hit.id, drag.file);              // 자석: 가장 가까운 원에 붙음
+        else if (drag.from) delete placed[drag.from];      // 원 밖에 놓으면 떼어냄
+        drag.ghost.remove(); drag = null;
+        highlight(null); renderLayer();
+        return;
+      }
+      if (!press) return;
+      var p = press; press = null;
+
+      if (p.kind === "dot" && p.moved) {
+        var r = stage.getBoundingClientRect();
+        var out = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+        if (out) {                                         // 귀 밖으로 빼면 포인트 삭제
+          var snap = snapshot();
+          userPts = userPts.filter(function (u) { return u.id !== p.id; });
+          delete placed[p.id];
+          if (sel === p.id) sel = null;
+          showUndo("포인트를 지웠습니다", snap);
+        }
+        renderLayer();
+        return;
+      }
+      if (p.moved) return;
+
+      if (p.kind === "patch") {
+        if (sel === p.id) {                                // 이미 선택된 패치를 또 누름
+          if (mq.matches) startPick(p.id);                 // 모바일: 교체 시트
+          return;                                          // 레이어는 그대로 둔다
+        }
+        if (sheetFor) closeSheet();
+        sel = p.id;
+        renderLayer();
+      } else {                                             // 포인트 탭 = 패치 고르기
+        startPick(p.id);
+      }
+    }
+
+    document.getElementById("grid").addEventListener("pointerdown", function (e) {
+      var c = e.target.closest(".chip"); if (!c) return;
+      if (sheetFor) {
+        var id = sheetFor;
+        if (e.pointerType !== "mouse") swallowNextClick();
+        setPatch(id, c.dataset.file);
+        closeSheet();
+        sel = id; renderLayer();                 // 바꾼 뒤에도 선택을 유지해 회전을 이어서 만진다
+        return;
+      }
+      start(e, c.dataset.file, null);
+    });
+
+    layer.addEventListener("pointerdown", function (e) {
+      var h = e.target.closest(".rot-h");
+      if (h && sel && placed[sel]) {                     // 회전 핸들 잡기
+        var c = centerOf(sel);
+        rotDrag = { id: sel, off: (placed[sel].rot || 0) - angleTo(e, c), c: c };
+        e.preventDefault();
+        return;
+      }
+      var del = e.target.closest(".x");
+      if (del) {                                         // 사용자 포인트 삭제
+        var pid = del.parentNode.dataset.id, snap = snapshot();
+        userPts = userPts.filter(function (u) { return u.id !== pid; });
+        delete placed[pid];
+        if (sel === pid) sel = null;
+        renderLayer();
+        showUndo("포인트를 지웠습니다", snap);
+        e.preventDefault();
+        return;
+      }
+      var el = e.target.closest(".patch, .dot"); if (!el) return;
+      var isPatch = el.classList.contains("patch");
+      press = {
+        kind: isPatch ? "patch" : "dot",
+        id: el.dataset.id, x0: e.clientX, y0: e.clientY, moved: false
+      };
+      if (!isPatch && !el.classList.contains("user")) press.fixed = true;
+      press.slop = e.pointerType === "touch" ? 10 : 4;   // 손가락 떨림 허용치
+      e.preventDefault();
+    });
+
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", end);
+    addEventListener("pointercancel", end);
+
+    /* ── 조작부 ── */
+    document.getElementById("reset").onclick = function () {
+      if (!Object.keys(placed).length) return;
+      var snap = snapshot();
+      placed = {}; sel = null; renderLayer();
+      showUndo("패치를 모두 지웠습니다", snap);
+    };
+    function showPts(on) {
+      layer.classList.toggle("hidepts", !on);
+      document.getElementById("showPt").setAttribute("aria-pressed", String(on));   // 눌림 = 보이는 중
+    }
+    document.getElementById("showPt").onclick = function () {
+      showPts(layer.classList.contains("hidepts"));
+    };
+    // 가운데에 바로 하나 만든다. 겹치지 않게 조금씩 비켜 놓고, 끌어서 자리를 잡는다.
+    document.getElementById("addPt").onclick = function () {
+      var n = userPts.length;
+      var x = 50 + (n % 4) * 3, y = 50 + (n % 4) * 3;
+      userPts.push({ id: "u" + (++uid), x: x, y: y, l: sampleL(x, y) });
+      showPts(true);                             // 숨긴 상태로 추가하면 방금 만든 점이 안 보인다
+      renderLayer();
+    };
+
+    addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        if (sheetFor) closeSheet();
+        else if (sel) { sel = null; renderLayer(); }
+      } else if ((e.key === "Delete" || e.key === "Backspace") && sel && placed[sel]
+        && document.activeElement !== document.getElementById("q")) {
+        e.preventDefault();
+        document.getElementById("selDel").click();
+      }
+    });
+
+    render();
+  </script>
+</body>
+
+</html>
