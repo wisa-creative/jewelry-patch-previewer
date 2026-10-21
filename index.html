@@ -1061,7 +1061,7 @@
     }
 
     function start(e, file, from) {
-      drag = { file: file, from: from };
+      drag = { file: file, from: from, x0: e.clientX, y0: e.clientY };
       drag.ghost = document.createElement("img");
       drag.ghost.className = "ghost";
       drag.ghost.src = src(file);
@@ -1109,7 +1109,10 @@
       if (rotDrag) { rotDrag = null; save(); return; }   // 다시 그리면 레이어가 한 번 깜빡인다
       if (drag) {
         var hit = nearest(e.clientX, e.clientY);
-        if (hit) setPatch(hit.id, drag.file);              // 자석: 가장 가까운 원에 붙음
+        // 팔레트 칩을 끌지 않고 눌렀다 뗌 + 붙은 패치가 선택돼 있음 = 그 패치를 이걸로 바꾼다
+        var tapped = !drag.from && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5;
+        if (tapped && sel && placed[sel]) setPatch(sel, drag.file);
+        else if (hit) setPatch(hit.id, drag.file);         // 자석: 가장 가까운 원에 붙음
         else if (drag.from) delete placed[drag.from];      // 원 밖에 놓으면 떼어냄
         drag.ghost.remove(); drag = null;
         highlight(null); renderLayer();
