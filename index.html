@@ -7,13 +7,17 @@
   <title>이혈 패치 프리뷰</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <style>
-    /* m.wblbeauty.com 에서 실측한 값 */
+    /* wblbeauty.co.kr 에서 실측한 값 */
     :root {
-      --bg: #faf9f6;          /* 페이지 바탕(크림) */
-      --soft: #f4f2ec;        /* 섹션 바탕 */
+      --bg: #fff;             /* 공식몰 바탕 */
+      --soft: #f4f2ec;        /* 카테고리 원·섹션 바탕 */
+      --cream: #fbf8f2;
       --ink: #2a2725;
+      --sub: #5c5955;
       --mute: #8a847c;
       --line: #ece8e0;
+      --beige: #e4dacb;
+      --rose: #a13e5e;        /* 할인율 */
       --brand: #46603a;       /* 브랜드 그린: 주얼패치 컬렉션·쿠폰가 */
       --sage: #9ead90;        /* NEW 탭 */
       --gold: #8e712c;        /* 골드 러시 위크 */
@@ -46,50 +50,90 @@
       padding: 20px 16px 60px
     }
 
-    /* ── 카테고리 탭 ── */
+    /* ── 머리말: 공식몰 배너 카피 형식 ── */
+    .head {
+      margin: 8px 0 14px
+    }
+
+    .head small {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: var(--brand)
+    }
+
+    .head h1 {
+      margin: 2px 0 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -.02em
+    }
+
+    .head p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--sub)
+    }
+
+    /* ── 카테고리 탭: 공식몰 상단 메뉴처럼 글자 + 밑줄 ── */
     .tabs {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 8px;
-      margin-bottom: 14px
+      display: flex;
+      gap: 22px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      scrollbar-width: none
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none
     }
 
     .tab {
       position: relative;
-      padding: 12px 6px;
+      flex: none;
+      padding: 12px 0 11px;
       border: 0;
-      border-radius: 999px;
-      background: #fff;
-      color: var(--ink);
+      border-bottom: 2px solid transparent;
+      background: none;
+      color: var(--sub);
       font: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: var(--sh-1);
-      cursor: pointer
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color .14s
+    }
+
+    .tab:hover {
+      color: var(--ink)
     }
 
     .tab[aria-selected="true"] {
-      background: var(--pill);
-      color: #fff;
+      border-bottom-color: var(--ink);
+      color: var(--ink);
       font-weight: 700
     }
 
+    /* 공식몰 NEW 옆 표시처럼 작게 */
     .tab .best {
-      position: absolute;
-      top: -9px;
-      right: 14px;
-      background: var(--gold);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .02em;
-      padding: 2px 7px;
-      border-radius: 999px
+      margin-left: 3px;
+      vertical-align: 6px;
+      color: var(--rose);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .02em
     }
 
     @media(max-width:560px) {
       .tabs {
-        grid-template-columns: repeat(4, 1fr)
+        gap: 18px;
+        margin: 0 -16px 16px;
+        padding: 0 16px
+      }
+
+      .head h1 {
+        font-size: 20px
       }
     }
 
@@ -120,9 +164,9 @@
     .stage {
       position: relative;
       width: 100%;
-      border-radius: 12px;     /* WBL 상품 카드와 같은 라운드 */
+      border-radius: 10px;     /* WBL 배너 카드와 같은 라운드 */
       overflow: hidden;
-      box-shadow: var(--sh-1);
+      background: var(--soft);
       touch-action: none
     }
 
@@ -196,12 +240,12 @@
       margin: 0 0 2px 2px;   /* 점 가장자리에서 약 7px */
       width: 17px;
       height: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 50%;
       background: var(--pill);
       color: #fff;
-      font-size: 12px;
-      line-height: 17px;
-      text-align: center;
       box-shadow: 0 0 0 1.5px #fff
     }
 
@@ -310,21 +354,39 @@
       color: var(--mute)
     }
 
-    .bar button {
-      border: 0;
+    .bar button,
+    .sel button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--line);
       background: #fff;
       border-radius: 999px;
-      padding: 9px 15px;
+      padding: 8px 14px;
       font: inherit;
       font-size: 13px;
       font-weight: 600;
       color: var(--ink);
-      box-shadow: var(--sh-1);
       cursor: pointer;
       transition: transform .14s cubic-bezier(.2, .8, .2, 1), background .14s
     }
 
-    .bar button:active {
+    .bar button svg,
+    .sel button svg {
+      flex: none;
+      color: var(--sub)
+    }
+
+    @media (hover: hover) {
+
+      .bar button:hover,
+      .sel button:hover {
+        border-color: var(--beige)
+      }
+    }
+
+    .bar button:active,
+    .sel button:active {
       transform: scale(.96);
       background: var(--soft)
     }
@@ -335,7 +397,12 @@
     }
 
     .bar button[aria-pressed="true"] {
+      border-color: var(--pill);
       background: var(--pill);
+      color: #fff
+    }
+
+    .bar button[aria-pressed="true"] svg {
       color: #fff
     }
 
@@ -345,11 +412,16 @@
       gap: 8px;
       align-items: center;
       margin-top: 10px;
-      padding: 12px 14px;
+      padding: 10px 10px 10px 16px;
       border: 0;
-      border-radius: 12px;
-      background: var(--soft);
-      font-size: 13px
+      border-radius: 10px;
+      background: var(--cream);
+      font-size: 13px;
+      color: var(--sub)
+    }
+
+    .sel b {
+      color: var(--ink)
     }
 
     .sel[hidden] {
@@ -368,23 +440,13 @@
       }
     }
 
-    .sel button {
-      border: 0;
-      background: #fff;
-      border-radius: 999px;
-      padding: 8px 13px;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--ink);
-      box-shadow: var(--sh-1);
-      cursor: pointer
-    }
-
     /* ── 팔레트 ── */
     .palette {
       flex: 1;
-      min-width: 0
+      min-width: 0;
+      padding: 14px 8px 4px;
+      border-radius: 10px;
+      background: var(--cream)
     }
 
     .palette h3:empty {
@@ -402,7 +464,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
-      margin-bottom: 8px
+      margin: 0 6px 8px
     }
 
     .search input {
@@ -410,9 +472,8 @@
       min-width: 0;
       border: 0;
       border-radius: 999px;
-      padding: 10px 16px;
-      background: #fff;
-      box-shadow: var(--sh-1);
+      padding: 11px 16px 11px 38px;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a847c' stroke-width='2.1' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 15px center;
       font: inherit;
       font-size: 13px;
       -webkit-user-select: text;
@@ -421,7 +482,7 @@
 
     .search input:focus {
       outline: none;
-      box-shadow: var(--sh-1), 0 0 0 2px var(--brand)
+      box-shadow: 0 0 0 1.5px var(--brand)
     }
 
     .search .count {
@@ -470,13 +531,12 @@
     }
 
     .chip {
-      border: 0;
-      border-radius: 12px;
+      border: 1px solid transparent;
+      border-radius: 10px;
       padding: 6px;
       background: #fff;
-      box-shadow: var(--sh-1);
       cursor: pointer;
-      transition: transform .14s, box-shadow .14s;
+      transition: transform .14s, border-color .14s;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -487,7 +547,7 @@
     @media (hover: hover) {
       .chip:hover {
         transform: translateY(-1px);
-        box-shadow: var(--sh-2)
+        border-color: var(--beige)
       }
     }
 
@@ -508,7 +568,7 @@
       gap: 12px;
       align-items: center;
       padding: 12px 14px 12px 18px;
-      border-radius: 14px;
+      border-radius: 999px;
       background: var(--pill);
       color: #fff;
       font-size: 13px;
@@ -522,8 +582,11 @@
 
     .toast button {
       border: 0;
-      border-radius: 10px;
-      padding: 8px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 7px 12px;
       background: rgba(255, 255, 255, .16);
       color: #fff;
       font: inherit;
@@ -554,7 +617,7 @@
         right: 0;
         bottom: 0;
         z-index: 50;
-        background: #fff;
+        background: var(--cream);
         border-radius: 18px 18px 0 0;
         box-shadow: 0 -6px 28px rgba(0, 0, 0, .18);
         padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
@@ -572,7 +635,6 @@
       .palette.open {
         transform: none
       }
-
       .grid {
         max-height: 54vh
       }
@@ -586,12 +648,17 @@
         display: block;
         position: absolute;
         top: 10px;
-        right: 12px;
+        right: 8px;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border: 0;
+        border-radius: 50%;
         background: none;
-        font-size: 20px;
-        line-height: 1;
-        color: var(--mute);
+        color: var(--sub);
         cursor: pointer
       }
 
@@ -609,6 +676,12 @@
 <body>
   <div class="wrap">
 
+    <header class="head">
+      <small>EAR THERAPY</small>
+      <h1>이혈 주얼패치 미리보기</h1>
+      <p>고민을 고르고, 포인트에 패치를 붙여 보세요.</p>
+    </header>
+
     <div class="tabs" id="tabs"></div>
 
     <div class="main">
@@ -621,19 +694,19 @@
         <div class="sel" id="sel" hidden>
           <span style="flex:1">회전 <b id="rotVal">0°</b></span>
           <button id="selSwap">다른 패치로</button>
-          <button id="selDel">패치 빼기</button>
+          <button id="selDel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>패치 빼기</button>
         </div>
 
         <div class="bar">
-          <button id="addPt">포인트 추가</button>
-          <button id="showPt" aria-pressed="true">포인트 표시</button>
-          <button id="reset">전체 지우기</button>
+          <button id="addPt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>포인트 추가</button>
+          <button id="showPt" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>포인트 표시</button>
+          <button id="reset"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>전체 지우기</button>
           <span id="hint"></span>
         </div>
       </div>
 
       <div class="palette" id="palette">
-        <button class="sheet-close" id="sheetClose" aria-label="닫기">×</button>
+        <button class="sheet-close" id="sheetClose" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <h3 id="palTitle"></h3>
         <div class="search">
           <input id="q" type="search" placeholder="패치 이름 검색 (예: 루미하트, 골드)" autocomplete="off">
@@ -644,7 +717,7 @@
     </div>
   </div>
   <div class="backdrop" id="backdrop"></div>
-  <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
+  <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastUndo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13A8 8 0 1 0 6.3 6.3"/><path d="M4 5v6h6"/></svg>되돌리기</button></div>
 
   <script>
     /* ── 이혈 포인트 묶음 (ear.png 기준 %, [x, y, 밝기]) ──
@@ -741,6 +814,8 @@
     }
 
     /* ── 귀 위 원 + 붙은 패치 ── */
+    var X_SVG = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6"'
+      + ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     var NAT = {};   // 파일 -> 원본 px. 캐시해야 다시 그릴 때 크기가 튀지 않는다
 
     function renderLayer() {
@@ -749,7 +824,7 @@
         var p = pointOf(id);
         return '<button class="dot' + (isUser(id) ? ' user' : '') + (placed[id] ? ' has' : '') + (sheetFor === id ? ' on' : '')
           + '" data-id="' + id + '" style="left:' + p.x + '%;top:' + p.y + '%">'
-          + (isUser(id) ? '<span class="x" title="포인트 삭제">×</span>' : '') + '</button>';
+          + (isUser(id) ? '<span class="x" title="포인트 삭제">' + X_SVG + '</span>' : '') + '</button>';
       }).join("");
       html += ids.filter(function (id) { return placed[id]; }).map(function (id) {
         var p = pointOf(id), it = placed[id];
