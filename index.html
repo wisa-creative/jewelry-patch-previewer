@@ -361,6 +361,13 @@
       min-width: 100px
     }
 
+    /* PC에서는 팔레트 칩을 누르면 선택된 패치가 바로 바뀐다 */
+    @media(min-width:761px) {
+      #selSwap {
+        display: none
+      }
+    }
+
     .sel button {
       border: 0;
       background: #fff;
@@ -615,7 +622,6 @@
           <span style="flex:1">회전 <b id="rotVal">0°</b></span>
           <button id="selSwap">다른 패치로</button>
           <button id="selDel">패치 빼기</button>
-          <button id="selClose">닫기</button>
         </div>
 
         <div class="bar">
@@ -1023,7 +1029,6 @@
       sel = null; renderLayer();
       showUndo("패치를 뺐습니다", snap);
     };
-    document.getElementById("selClose").onclick = function () { sel = null; renderLayer(); };
 
     // 패치·선택 레이어·선택 바 밖을 누르면 선택을 푼다
     // 팔레트에서 선택을 유지하는 곳: 패치 칩·검색창·스크롤바(바꿀 패치를 찾는 중이라서).
